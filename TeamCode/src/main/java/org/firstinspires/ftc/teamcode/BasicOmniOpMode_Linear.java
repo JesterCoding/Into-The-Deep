@@ -29,11 +29,17 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.ftc.LazyImu;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -76,6 +82,26 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     @Override
     public void runOpMode() {
 
+
+//        imu.initialize(
+//                new IMU.Parameters(
+//                        new RevHubOrientationOnRobot(
+//                                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+//                                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+//                        )
+//                )
+//        );
+//
+//        // Create an object to receive the IMU angles
+//        YawPitchRollAngles robotOrientation;
+//        robotOrientation = imu.getRobotYawPitchRollAngles();
+//
+//// Now use these simple methods to extract each angle
+//// (Java type double) from the object you just created:
+//        double Yaw   = robotOrientation.getYaw(AngleUnit.DEGREES);
+//        double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
+//        double Roll  = robotOrientation.getRoll(AngleUnit.DEGREES);
+
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
         leftFrontDrive  = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -116,10 +142,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial + lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial - lateral - yaw;
+            double leftFrontPower  = axial - lateral + yaw;
+            double rightFrontPower = axial - lateral - yaw;
+            double leftBackPower   = axial + lateral + yaw;
+            double rightBackPower  = axial + lateral - yaw;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
