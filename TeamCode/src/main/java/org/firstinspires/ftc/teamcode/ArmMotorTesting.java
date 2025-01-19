@@ -20,8 +20,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 @TeleOp(name = "ArmMotorTesting", group = "Linear OpMode")
 public class ArmMotorTesting extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor topRightRotation = null;
-    private DcMotor bottomRightRotation = null;
     private DcMotor topLeftRotation = null;
     private DcMotor bottomLeftRotation = null;
 
@@ -63,39 +61,30 @@ public class ArmMotorTesting extends LinearOpMode {
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral = gamepad1.left_stick_x;
-            double yaw = gamepad1.right_stick_x;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower = axial - lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower = axial + lateral + yaw;
-            double rightBackPower = axial + lateral - yaw;
+            // Set up a variable for each drive wheel to save the power level for telemetry
+            double topExtensionPower = axial;
+            double bottomExtensionPower = axial;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
-
+            max = Math.max(Math.abs(topExtensionPower), Math.abs(bottomExtensionPower));
             int topPosition = Math.max(topLeftRotation.getCurrentPosition(), bottomLeftRotation.getCurrentPosition());
 
 
             if (max > 1.0) {
-                leftFrontPower /= max;
-                rightFrontPower /= max;
-                leftBackPower /= max;
-                rightBackPower /= max;
+                topExtensionPower /= max;
+                bottomExtensionPower /= max;
             }
 
             if (topPosition > 680)
             {
-                leftFrontPower = 0;
-                rightFrontPower = 0;
-                leftBackPower = 0;
-                rightBackPower = 0;
+                topExtensionPower = Math.min(topExtensionPower, 0);
+                bottomExtensionPower = Math.min(bottomExtensionPower, 0);
             }
+
+
             // This is test code:
             //
             // Uncomment the following code to test your motor directions.
@@ -116,13 +105,12 @@ public class ArmMotorTesting extends LinearOpMode {
             // Send calculated power to wheels
             //   topRightRotation.setPower(leftFrontPower);
             //   bottomRightRotation.setPower(rightFrontPower);
-            topLeftRotation.setPower(leftBackPower);
-            bottomLeftRotation.setPower(rightBackPower);
+            topLeftRotation.setPower(topExtensionPower);
+            bottomLeftRotation.setPower(bottomExtensionPower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Power Top/Bottom", "%4.2f, %4.2f", topExtensionPower, bottomExtensionPower);
             telemetry.addData("Top Encoder Data:", topLeftRotation.getCurrentPosition());
             telemetry.addData("Bottom Encoder Data:", bottomLeftRotation.getCurrentPosition());
             telemetry.update();

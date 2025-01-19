@@ -62,13 +62,13 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
         // drive model parameters
-        public double inPerTick = 120/60899.08333;
+        public double inPerTick = 119.5/60477.26667; //0.00197594908
         public double lateralInPerTick = inPerTick;
         public double trackWidthTicks = 0;
 
         // feedforward parameters (in tick units)
-        public double kS = 0;
-        public double kV = 0;
+        public double kS = 1.1086984846090013;
+        public double kV = 0.00029936217477436914;
         public double kA = 0;
 
         // path profile parameters (in inches)
@@ -106,7 +106,8 @@ public final class MecanumDrive {
             new ProfileAccelConstraint(PARAMS.minProfileAccel, PARAMS.maxProfileAccel);
 
     public final DcMotorEx leftFront, leftBack, rightBack, rightFront,
-            topRightRotation, bottomRightRotation, topLeftRotation, bottomLeftRotation;
+          //  topRightRotation, bottomRightRotation,
+            topLeftRotation, bottomLeftRotation;
 
     public final VoltageSensor voltageSensor;
 
@@ -122,7 +123,8 @@ public final class MecanumDrive {
 
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftBack, rightBack, rightFront,
-                topRightRotation, bottomRightRotation, topLeftRotation, bottomLeftRotation;
+              //  topRightRotation, bottomRightRotation,
+              topLeftRotation, bottomLeftRotation;
         public final IMU imu;
 
         private int lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
@@ -137,15 +139,15 @@ public final class MecanumDrive {
             rightFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightFront));
 
 
-            topRightRotation = new OverflowEncoder(new RawEncoder(MecanumDrive.this.topRightRotation));
-            bottomRightRotation = new OverflowEncoder(new RawEncoder(MecanumDrive.this.bottomRightRotation));
+            //topRightRotation = new OverflowEncoder(new RawEncoder(MecanumDrive.this.topRightRotation));
+            //bottomRightRotation = new OverflowEncoder(new RawEncoder(MecanumDrive.this.bottomRightRotation));
             topLeftRotation = new OverflowEncoder(new RawEncoder(MecanumDrive.this.topLeftRotation)) ;
             bottomLeftRotation = new OverflowEncoder(new RawEncoder(MecanumDrive.this.bottomLeftRotation));
 
             imu = lazyImu.get();
 
-            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-            leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
             // TODO: reverse encoders if needed
             //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -240,8 +242,8 @@ public final class MecanumDrive {
         rightBack = hardwareMap.get(DcMotorEx.class, "backRight");
         rightFront = hardwareMap.get(DcMotorEx.class, "frontRight");
 
-        topRightRotation = hardwareMap.get(DcMotorEx.class, "topRightRotation");
-        bottomRightRotation = hardwareMap.get(DcMotorEx.class, "bottomRightRotation");
+       // topRightRotation = hardwareMap.get(DcMotorEx.class, "topRightRotation");
+       // bottomRightRotation = hardwareMap.get(DcMotorEx.class, "bottomRightRotation");
         topLeftRotation = hardwareMap.get(DcMotorEx.class, "topLeftRotation");
         bottomLeftRotation = hardwareMap.get(DcMotorEx.class, "bottomLeftRotation");
 
@@ -258,16 +260,16 @@ public final class MecanumDrive {
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        topRightRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        bottomRightRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //topRightRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //bottomRightRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         topLeftRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         bottomLeftRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // TODO: reverse motor directions if needed
         //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
