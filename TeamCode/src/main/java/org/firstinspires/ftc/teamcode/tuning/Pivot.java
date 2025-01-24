@@ -43,8 +43,8 @@ public class Pivot {
     }
 
 
-    DcMotorEx leftSlide;
-    DcMotorEx rightSlide;
+    DcMotorEx topPivot;
+    DcMotorEx bottomPivot;
 
     public static double accel = 10;
     MotionProfile motionProfile;
@@ -60,9 +60,11 @@ public class Pivot {
     double prevErrorVelocity;
 
     //DO NOT TOUCH!!!
-    public static double Kp = 0.025;
-    public static double Ki = 0.0008;
-    public static double Kd = 0.025;
+    public static double Kp = 0.025; //How fast you wanna move to another position
+    public static double Ki = 0.0008; //
+
+    //public static double Kd = 0.025;
+
 
     public final static double VKp = 0.00045;
     public final static double VKi = 0.000085;
@@ -74,17 +76,17 @@ public class Pivot {
     public Pivot(HardwareMap hardwareMap) {
 
         //Change the name of the device here
-        leftSlide = hardwareMap.get(DcMotorEx.class, "topLeftRotation");
-        leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftSlide.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+        topPivot = hardwareMap.get(DcMotorEx.class, "topLeftRotation");
+        topPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        topPivot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        topPivot.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        //topPivot.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //Change the name of this device here?!
-        rightSlide = hardwareMap.get(DcMotorEx.class, "bottomLeftRotation");
-        rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        bottomPivot = hardwareMap.get(DcMotorEx.class, "bottomLeftRotation");
+        bottomPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        bottomPivot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bottomPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         filter = new Filters(1, 0.02);
 
@@ -101,7 +103,7 @@ public class Pivot {
     //USE ONLY FOR MOTION PROFILING
     public double runToVelo(double velo) {
 
-        double error = velo - filter.emaFilter(new double[]{leftSlide.getVelocity()})[0];
+        double error = velo - filter.emaFilter(new double[]{bottomPivot.getVelocity()})[0];
 
         if (error * prevErrorPositional <= 0) {
             errorSumPositional = 0;  // Reset the integral term when the error changes sign
@@ -113,8 +115,8 @@ public class Pivot {
         double pidOutput = VKp * error + VKi * errorSumVelocity + VKd * errorDiff + VKf * error;
         prevErrorVelocity = error;
 
-        leftSlide.setPower(pidOutput);
-        rightSlide.setPower(pidOutput);
+        topPivot.setPower(pidOutput);
+        bottomPivot.setPower(pidOutput);
         return error;
     }
 
@@ -130,16 +132,16 @@ public class Pivot {
                 runToPos(targetHeight, currHeight);
                 break;
             case ACCEL:
-                runToVelo(leftSlide.getVelocity() + accel);
+                runToVelo(bottomPivot.getVelocity() + accel);
                 break;
             case COAST:
                 runToVelo(MAX_VELO);
                 break;
             case DECCEL:
-                if (Math.abs(leftSlide.getVelocity()) < 1) {
+                if (Math.abs(bottomPivot.getVelocity()) < 1) {
                     motionProfile.motionState = MotionProfile.MotionState.IDLE;
                 }
-                runToVelo(leftSlide.getVelocity() - accel);
+                runToVelo(bottomPivot.getVelocity() - accel);
                 break;
         }
     }
@@ -160,12 +162,12 @@ public class Pivot {
         if (Math.abs(errorSumPositional) < 200)
             errorSumPositional += error;                           // Accumulate error for integral
         double errorDiff = error - prevErrorPositional; // Compute error difference for derivative
-        double pidOutput = Kp * error + Ki * errorSumPositional + Kd * errorDiff;
+        double pidOutput = Kp * error + Ki * errorSumPositional + Kp * errorDiff;
         prevErrorPositional = error;
 
 
-        leftSlide.setPower(pidOutput*modifier); //
-        rightSlide.setPower(pidOutput*modifier); //
+        bottomPivot.setPower(pidOutput*modifier); //
+        topPivot.setPower(pidOutput*modifier); //
     }
 
     public void setTargetDist(double dist) {
@@ -173,19 +175,20 @@ public class Pivot {
     }
 
     public void setCustomPower(double pow) {
-        leftSlide.setPower(pow);
-        rightSlide.setPower(pow);
+        bottomPivot.setPower(pow);
+        topPivot.setPower(pow);
     }
 
     public void updatePos() {
         currHeight = getPosition();
     }
 
+    //gives only bottomPivot position
     public double getPosition() {
-        return (leftSlide.getCurrentPosition() + rightSlide.getCurrentPosition())/2.0;
+        return (bottomPivot.getCurrentPosition());
     }
 
     public double getVelocity() {
-        return leftSlide.getVelocity();
+        return bottomPivot.getVelocity();
     }
 }
