@@ -45,6 +45,8 @@ public class PivotArm {
     double errorSumVelocity;
     double prevErrorVelocity;
 
+    double pidOutput;
+
     //DO NOT TOUCH!!!
     public static double Kp = 0.035;
     public static double Ki = 0.0008;
@@ -105,17 +107,18 @@ public class PivotArm {
         double errorDiff = error - prevErrorPositional;
 
         // Compute raw PID output
-        double pidOutput = Kp * error + Ki * errorSumPositional + Kd * errorDiff;
+        pidOutput = Kp * error + Ki * errorSumPositional + Kd * errorDiff;
 
         // Apply sigmoid scaling to smooth the output
-        double scaledOutput = sigmoid(pidOutput);
+        //double scaledOutput = sigmoid(pidOutput);
 
+        //pidOutput = sigmoid(pidOutput);
         // Update the previous error for derivative calculation
         prevErrorPositional = error;
 
         // Set motor powers with scaled output
-        bottomPivot.setPower(scaledOutput * modifier);
-        topPivot.setPower(scaledOutput * modifier);
+        bottomPivot.setPower(/*scaledOutput * */ pidOutput*modifier);
+        topPivot.setPower(/*scaledOutput * */ pidOutput*modifier);
     }
 
     // Sigmoid function for scaling
@@ -123,7 +126,6 @@ public class PivotArm {
         double k = 5.0; // Adjust steepness of the sigmoid curve (higher values = steeper transition)
         return 1 / (1 + Math.exp(-k * x)) - 0.5; // Scaled to range [-0.5, 0.5]
     }
-
 
 
     public void setTargetDist(double dist) {
