@@ -17,6 +17,7 @@ This will NOT necessarily work with your robot desgin. Use with caution.
 (Prolly will have to create your own custom version of this depending on your robot design)
  */
 
+/*
 @Config
 public class Pivot {
 
@@ -192,3 +193,5 @@ public class Pivot {
         return bottomPivot.getVelocity();
     }
 }
+
+ */

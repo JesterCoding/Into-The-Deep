@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 @Config
 public class CONSTANTS {
-    public static double IDLE = 0;
+    public static double IDLE = 0.3;
     public static double OUTTAKE = 1;
     public static double RELEASE = 0;
     public static double HOLD = 0.5;

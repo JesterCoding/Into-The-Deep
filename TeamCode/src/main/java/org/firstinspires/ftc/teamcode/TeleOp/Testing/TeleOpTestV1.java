@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gam
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,10 +13,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Subsystems.Movement;
 import org.firstinspires.ftc.teamcode.Subsystems.PivotArm;
+import org.firstinspires.ftc.teamcode.Subsystems.RobotHardware;
 import org.firstinspires.ftc.teamcode.Subsystems.Slides;
 
+@Disabled
 @Config
-@TeleOp(group = "Subsystems")
+@TeleOp(group = "subsystems")
 public class TeleOpTestV1 extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -23,17 +26,17 @@ public class TeleOpTestV1 extends LinearOpMode {
     PivotArm pivot;
     Movement movement;
 
-    float setpoint = 0;
-    float exSetpoint = 0;
+    int setpoint = 0;
+    int exSetpoint = 0;
 
     @Override
     public void runOpMode() throws InterruptedException
     {
-
+        RobotHardware robot = new RobotHardware(this);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        movement = new Movement(hardwareMap);
-        slides = new Slides(hardwareMap);
-        pivot = new PivotArm(hardwareMap);
+        movement = new Movement(robot);
+        slides = new Slides(robot);
+        pivot = new PivotArm(robot);
 
         waitForStart();
         runtime.reset();
@@ -75,12 +78,16 @@ public class TeleOpTestV1 extends LinearOpMode {
                 setpoint = 200;
             }
 
-            movement.move(axial, lateral, yaw);
+            movement.driveRobot(axial, lateral, yaw);
 
-            slides.setTargetDist(exSetpoint);
-            pivot.setTargetDist(setpoint);
+            slides.setTargetDist(setpoint);
             slides.runToPos();
-            pivot.runToPos();
+
+            telemetry.addData("SlidesCurr", slides.getPosition());
+            telemetry.addData("SlidesTarget", slides.targetHeight);
+            telemetry.addData("SlidePower", slides.getCurrPower());
+
+            telemetry.update();
         }
     }
 }

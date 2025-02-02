@@ -11,68 +11,33 @@ import java.util.Arrays;
 @Config
 public class PivotArm {
 
-    private static class Filters {
-        double alpha;
-        double[] channels;
+    DcMotorEx topPivot, bottomPivot;
 
-        public Filters(int channels, double alpha) {
-            this.alpha = alpha;
-            this.channels = new double[channels];
-            Arrays.fill(this.channels, 1);
-        }
+    public double currHeight, targetHeight, currPower = 0;
 
-        //exponential moving averages filter
-        public double[] emaFilter(double[] val) {
-            for (int i = 0; i < channels.length; i++) {
-                channels[i] = (alpha * val[i] + (1 - alpha) * channels[i]);
-            }
-            return channels;
-        }
-    }
-
-
-    DcMotorEx bottomPivot;
-    DcMotorEx topPivot;
-    DcMotorEx topEx;
-    DcMotorEx bottomEx;
-
-    public double currHeight = 0;
-    public double targetHeight = 0;
-
-
-    public double errorSumPositional;
-    double prevErrorPositional;
-    double errorSumVelocity;
-    double prevErrorVelocity;
-
-    double pidOutput;
+    public double errorSumPositional,prevErrorPositional, errorSumVelocity, prevErrorVelocity;
 
     //DO NOT TOUCH!!!
-    public static double Kp = 0.035;
-    public static double Ki = 0.0008;
-    public static double Kd = 0.025;
+    public static double Kp = 0.0045;      //0.035;
+    public static double Ki = 0.0005;      //0.0008;
+    public static double Kd = 0.015;      //0.025;
+
+    public static double k = 0.013; //Sharpness of Sigmoid Curve
+
+    //public static double resist = 0.;
+
+    public double scaledOutput = 1;
 
 
-    Filters filter;
+    private RobotHardware robot = null;
 
-    public PivotArm(HardwareMap hardwareMap) {
+    public PivotArm(RobotHardware hardwareMap)
+    {
+        robot = hardwareMap;
+        robot.init();
 
-
-        bottomPivot = hardwareMap.get(DcMotorEx.class, "topRightRotation");
-        bottomPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bottomPivot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        bottomPivot.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
-
-
-        topPivot = hardwareMap.get(DcMotorEx.class, "bottomRightRotation");
-        topPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        topPivot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        topPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-
-
-        filter = new Filters(1, 0.02);
+        topPivot = hardwareMap.getTopPivot();
+        bottomPivot = hardwareMap.getBottomPivot();
 
         //persistent no bueno
         errorSumPositional = 0;
@@ -84,12 +49,10 @@ public class PivotArm {
 
     //DIST IN TICKS
     //normalize dist, but i dont care
-    public void runToPos() {
-        double modifier = 1;
-        if (targetHeight < currHeight) {
-            modifier = 0.9;
-        }
 
+
+
+    public void runToPos() {
         // Error calculation
         double error = targetHeight - currHeight;
 
@@ -99,32 +62,38 @@ public class PivotArm {
         }
 
         // Accumulate error for integral term (limit to prevent wind-up)
-        if (Math.abs(errorSumPositional) < 200) {
-            errorSumPositional += error;
-        }
+        //wtvr we set as 90 should replace 360
+        errorSumPositional = Math.min(errorSumPositional + error, targetHeight);
+
 
         // Compute derivative term
         double errorDiff = error - prevErrorPositional;
 
         // Compute raw PID output
-        pidOutput = Kp * error + Ki * errorSumPositional + Kd * errorDiff;
+        double pidOutput = Kp * error + Ki * errorSumPositional + Kd * errorDiff;
 
         // Apply sigmoid scaling to smooth the output
-        //double scaledOutput = sigmoid(pidOutput);
+       // scaledOutput = sigmoid(error);
 
-        //pidOutput = sigmoid(pidOutput);
         // Update the previous error for derivative calculation
         prevErrorPositional = error;
 
+        currPower = scaledOutput*pidOutput;
         // Set motor powers with scaled output
-        bottomPivot.setPower(/*scaledOutput * */ pidOutput*modifier);
-        topPivot.setPower(/*scaledOutput * */ pidOutput*modifier);
+        setCustomPower(currPower);
+        robot.telemetryUpdate();
     }
 
-    // Sigmoid function for scaling
-    private double sigmoid(double x) {
-        double k = 5.0; // Adjust steepness of the sigmoid curve (higher values = steeper transition)
-        return 1 / (1 + Math.exp(-k * x)) - 0.5; // Scaled to range [-0.5, 0.5]
+    private double sigmoid(double x)
+    {
+        // Adjust steepness of the sigmoid curve (higher values = steeper transition)
+        // return Math.abs(1 / (1 + Math.exp(-k * x))-0.5)+0.5; // Scaled to range [0, 1]
+        return 2*Math.abs(1 / (1 + Math.exp(-k * x))-0.5);
+    }
+
+    public void stabilize()
+    {
+
     }
 
 
@@ -133,21 +102,20 @@ public class PivotArm {
     }
 
     public void setCustomPower(double pow) {
-        bottomPivot.setPower(pow);
         topPivot.setPower(pow);
+        bottomPivot.setPower(-1*pow);
     }
 
-
+    public double getCurrPower()
+    {
+        return currPower;
+    }
 
     public void updatePos() {
         currHeight = getPosition();
     }
 
-    public double getPosition() {
-        return bottomPivot.getCurrentPosition();
-    }
-
-    public double getVelocity() {
-        return bottomPivot.getVelocity();
+    public int getPosition() {
+        return bottomPivot.getCurrentPosition(); //topPivot encoder and bottomPivot encoder are flipped
     }
 }

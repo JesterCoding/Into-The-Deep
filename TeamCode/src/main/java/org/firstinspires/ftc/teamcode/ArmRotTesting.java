@@ -4,11 +4,14 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gam
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Disabled
 @TeleOp(name = "ArmRotTesting", group = "Linear OpMode")
 public class ArmRotTesting extends LinearOpMode
 {
@@ -45,7 +48,7 @@ public class ArmRotTesting extends LinearOpMode
             topRightRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             bottomRightRotation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-            topRightRotation.setDirection(DcMotor.Direction.FORWARD);
+            topRightRotation.setDirection(DcMotor.Direction.REVERSE);
             bottomRightRotation.setDirection(DcMotor.Direction.FORWARD);
 
             // Wait for the game to start (driver presses START)

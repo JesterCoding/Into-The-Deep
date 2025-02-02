@@ -10,6 +10,7 @@ import static org.firstinspires.ftc.teamcode.Subsystems.CONSTANTS.R_IDLE;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.robot.Robot;
 
 
 //DO NOT PACKAGE COLOR SENSORS WITH THIS CLASS
@@ -21,12 +22,11 @@ public class Intake {
     Servo release;
     Servo rotation;
 
-    public Intake(HardwareMap hardwareMap) {
-        leftPivot = hardwareMap.get(Servo.class, "leftPivot");
-        rightPivot = hardwareMap.get(Servo.class, "rightPivot");
-        leftPivot.setDirection(Servo.Direction.REVERSE);
-        release = hardwareMap.get(Servo.class, "intake");
-        rotation = hardwareMap.get(Servo.class, "rotation");
+    public Intake(RobotHardware hardwareMap) {
+        hardwareMap.init();
+        leftPivot = hardwareMap.getSwitchIntake();
+        release = hardwareMap.getBeltIntake();
+        rotation = hardwareMap.getRotIntake();
     }
 
     public void outtake() {
@@ -47,14 +47,14 @@ public class Intake {
     }
 
     public void idle() {
-        rightPivot.setPosition(IDLE);
+        //rightPivot.setPosition(IDLE);
         leftPivot.setPosition(IDLE);
         release.setPosition(HOLD);
         rotation.setPosition(R_IDLE);
     }
 
     public void setValue(double position){
-        rightPivot.setPosition(position);
+        //rightPivot.setPosition(position);
         leftPivot.setPosition(position);
     }
 
